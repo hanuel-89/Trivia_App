@@ -73,7 +73,7 @@ def create_app(test_config=None):
                     "total_categories": len(categories)
                 }
             ), formatted_category
-        except:
+        except Exception:
             abort(422)
 
 
@@ -100,15 +100,13 @@ def create_app(test_config=None):
         _, formatted_category = get_categories()
 
 
-        print([formatted_category[ns.category] for ns in selection])
-
         return jsonify(
             {
                 "success": True,
                 "questions": current_questions,
-                "total_questions": len(selection),
+                "total_questions": len(Question.query.all()),
                 "categories": formatted_category,
-                "current_category": None
+                "current_category": "History"
             }
         )
 
@@ -133,7 +131,7 @@ def create_app(test_config=None):
                     "success": True
                 }
             )
-        except:
+        except Exception:
             abort(422)
 
 
@@ -156,28 +154,46 @@ def create_app(test_config=None):
         new_answer = body.get('answer', None)
         new_difficulty = body.get('difficulty', None)
         new_category = body.get('category', None)
+        search = body.get('searchTerm', None)
+        categories = Category.query.all()
 
         try:
-            question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
-            question.insert()
+            if search:
+                selection = Question.query.filter(Question.question.ilike(f"%{search}%")).all()
+                questions_found = paginate_questions(request, selection)
+                print(search)
+                #_, formatted_category = get_categories()
 
-            selection = Question.query.order_by(Question.id).all()
-            current_questions = paginate_questions(request, selection)
+                return jsonify (
+                    {
+                        "questions": questions_found,
+                        "total_questions": len(selection),
+                        "current_category": {category.id: category.type for category in categories}
 
-            _, formatted_category = get_categories()
+                    }
+                )
 
-            return jsonify(
-                {
-                    "success": True,
-                    "questions": current_questions,
-                    "total_questions": len(selection),
-                    "categories": formatted_category,
-                    "current_category":None,
-                    "posted_question_Id": question.id
+            else:
+                question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+                question.insert()
 
-                }
-            )
-        except:
+                selection = Question.query.order_by(Question.id).all()
+                current_questions = paginate_questions(request, selection)
+
+                _, formatted_category = get_categories()
+
+                return jsonify(
+                    {
+                        "success": True,
+                        "questions": current_questions,
+                        "total_questions": len(selection),
+                        "categories": formatted_category,
+                        "current_category": {category.id: category.type for category in categories},
+                        "posted_question_Id": question.id
+
+                    }
+                )
+        except Exception:
             abort(422)
 
     """
@@ -190,26 +206,31 @@ def create_app(test_config=None):
     only question that include that string within their question.
     Try using the word "title" to start.
     """
-    @app.route('/questions', methods=['POST'])
-    def search():
-        try:
-            search_term = request.get_json()
-            selection = Question.query.filter(Question.question.ilike("%"+search_term+"%")).all()
-            if selection is None:
-                abort(404)
-            questions_found = paginate_questions(request, selection)
+    # @app.route('/questions', methods=['POST'])
+    # def search():
+    #     body = request.get_json()
+    #     try:
+    #         searchTerm = body.get('searchTerm')
+    #         search = request.args.get('search', searchTerm)
+    #         print(search)
+    #         selection = Question.query.filter(Question.question.ilike(f"%{searchTerm}%")).all()
+    #         if selection is None:
+    #             abort(404)
+    #         questions_found = paginate_questions(request, selection)
+    #         print(searchTerm)
 
-            _, formatted_category = get_categories()
+    #         _, formatted_category = get_categories()
 
-            return jsonify (
-                {
-                    "questions": questions_found,
-                    "total_questions": len(selection),
-                    "current_category": formatted_category[questions_found.category],
-                }
-            )
-        except:
-            abort(422)
+    #         return jsonify (
+    #             {
+    #                 "questions": questions_found,
+    #                 "total_questions": len(selection),
+    #                 "current_category": {category.id: category.type for category in formatted_category}
+
+    #             }
+    #         )
+    #     except Exception:
+    #         abort(422)
 
     """
     @TODO:
@@ -252,19 +273,33 @@ def create_app(test_config=None):
     """
     @app.route('/quizzes', methods=['GET', 'POST'])
     def next_question():
-        previous_questions_id_list = []
-        category = request.args.get('category', 1, type=int)
-        previous_question_id = request.args.get(Question.id)
-        current_question = Question.query.filter(Question.id != previous_question_id).filter(Question.category == category)
-        previous_questions_id_list.append(current_question.id)
-
-        quiz_question = paginate_questions(request, current_question)
-
-        return jsonify(
+        body = request.get_json()
+        previous_questions = body.get('previous_questions', None)
+        quiz_category = body.get('quiz_category', None)
+        print(previous_questions)
+        print(quiz_category)
+        quiz_category_id = quiz_category['id']
+        try:
+            if quiz_category_id == 0:
+                selection = Question.query.filter(Question.id.notin_(previous_questions)).all()
+            else:
+                category = Category.query.get(quiz_category_id)
+                if category is not None:
+                    selection = Question.query.filter(Question.id.notin_(previous_questions)).filter(Question.category == quiz_category_id).all()
+            current_question = None
+            if len(selection) > 0:
+                current_question = random.choice(selection).format()
+            return jsonify(
             {
-                "questions": quiz_question
+                "success": True,
+                "question": current_question,
+                "totalQuesitons": len(Question.query.all())
             }
         )
+
+        except Exception:
+            abort(404)
+
     """
     @TODO:
     Create error handlers for all expected errors
