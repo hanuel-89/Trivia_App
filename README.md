@@ -29,7 +29,7 @@ Populate the database using the `trivia.psql` file provided. From the `backend` 
 psql trivia < trivia.psql
 ```
 
-### Run the Server
+##### Run the Server
 
 From within the `./src` directory first ensure you are working using your created virtual environment.
 
@@ -250,7 +250,7 @@ The API will return three error types when requests fail:
 ### Deployment
 N/A
 ### Authors
-- Udacity
+- Sarah Garcia (Udacity)
 - Emmanuel Folorunsho
 ### Acknowledgement
 The awesome team at Udacity, especially the tutor for this module - Coach Caryn.
