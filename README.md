@@ -1,6 +1,48 @@
+# THE UDACITY TRIVIA GAMES
+This project is a relaxation trivia game for udacity employees. The game has questions from six (6) different categories and an individual can add more questions to the game. The trivia app randomly selects questions from the players selected categories or from all categories if no particular category is selected. The project is one of Udacity's fullstack nanodegree program projects for which students are meant to implements endpoints, test endpoints and document the project.
+
+All backend code follows [PEP8 style guidelines](https://github.com/udacity/cd0037-API-Development-and-Documentation-exercises/tree/master/6_Final_Review)
+
+## Getting Started
+### Pre-requisites and Local Development
+Developers using this project should already have Python3, pip and node installed on their local machines.
+#### Backend
+From the backend folder run pip install requirements.txt. All required packages are included in the requirements file.
+
+To run the application run the following commands:
+
+```
+export FLASK_APP=flaskr
+export FLASK_ENV=development
+flask run
+```
+These commands put the application in development and directs our application to use the __init__.py file in our flaskr folder. Working in development mode shows an interactive debugger in the console and restarts the server whenever changes are made. If running locally on Windows, look for the commands in the [Flask documentation](https://flask.palletsprojects.com/en/1.0.x/tutorial/factory/)
+
+The application is run on `http://127.0.0.1:5000/` by default and is a proxy in the frontend configuration.
+#### Frontend
+From the frontend folder, run the following commands to start the client:
+```
+npm install // only once to install dependencies
+npm start 
+```
+By default, the frontend will run on `http://127.0.0.1:3000/`.
+
+### Tests
+In order to run tests navigate to the backend folder and run the following commands:
+```
+dropdb trivia_test
+createdb trivia_test
+psql trivia_test < trivia.psql
+python test_flaskr.py
+```
+The first time you run the tests, omit the dropdb command.
+
+All tests are kept in that file and should be maintained as updates are made to app functionality.
+
+
 # API Reference
 ## Getting Started
-- Base URL: At present this app can only be run locally and is not hosted as a base URL. The backend app is hosted at the default, http://127.0.0.1:5000/, while the React frontend is hosted at http://127.0.0.1:3000/
+- Base URL: At present this app can only be run locally and is not hosted as a base URL. The backend app is hosted at the default `http://127.0.0.1:5000` while the React frontend is hosted at `http://127.0.0.1:3000`
 - Authentication: This version of the application does not require authentication or API keys.
 ## Error Handling
 Errors are returned as JSON objects in the following format:
@@ -16,8 +58,8 @@ The API will return three error types when requests fail:
 
 ### GET /questions
 - General
- - Returns a list of question objects, success value, categories, current_category and total number of questions
- - Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
+  - Returns a list of question objects, success value, categories, current_category and total number of questions
+  - Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
 - Sample: ```curl http://127.0.0.1:5000/questions```
 ```bash
 {
@@ -60,9 +102,9 @@ The API will return three error types when requests fail:
 
 ### POST /questions
 - General
- - **New Question**
- - Creates a new questions using the submitted question, answer, difficulty and category. Returns the id of the created questions, success value, total questions, and questions list based on current page number to update the frontend
- - Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
+- **New Question**
+  - Creates a new questions using the submitted question, answer, difficulty and category. Returns the id of the created questions, success value, total questions, and questions list based on current page number to update the frontend
+  - Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
 - Sample: ```curl http://127.0.0.1:3000/questions -X POST -H "Content-Type: application/json" -d '{"question": "Who is the president of Nigeria?", "answer": "Buhari", "difficulty": 1, "category": 4}'```
 
 ```bash
@@ -79,9 +121,9 @@ The API will return three error types when requests fail:
     "total_questions": 34
 }
 ```
- - **Search**
- - Searches the database for questions that matches the search term
- - Returns the found questions, success value, and length of total questions found
+- **Search**
+  - Searches the database for questions that matches the search term
+  - Returns the found questions, success value, and length of total questions found
 - Sample: ```curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"searchTerm": "Tom"}'```
 
 ```bash
@@ -182,6 +224,13 @@ The API will return three error types when requests fail:
     "totalQuesitons": 24
 }
 ```
+### Deployment
+N/A
+### Authors
+- Udacity
+- Emmanuel Folorunsho
+### Acknowledgement
+The awesome team at Udacity, especially the tutor for this module - Coach Caryn.
 
 
 
