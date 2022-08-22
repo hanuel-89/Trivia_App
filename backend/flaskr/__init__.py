@@ -149,18 +149,20 @@ def create_app(test_config=None):
     def post_question():
         body = request.get_json()
 
-        new_question = body.get('question', None)
-        new_answer = body.get('answer', None)
-        new_difficulty = body.get('difficulty', None)
-        new_category = body.get('category', None)
-        search = body.get('searchTerm', None)
-        categories = Category.query.all()
+        new_question = body.get('question')
+        new_answer = body.get('answer')
+        new_difficulty = body.get('difficulty')
+        new_category = body.get('category')
+        search = body.get('searchTerm')
 
-        try:
-            if search:
-                selection = Question.query.filter(
-                    Question.question.ilike(f"%{search}%")).all()
-                if len(selection) == 0:
+        if search:
+            try:
+                if search is None:
+                    abort(404)
+                else:
+                    selection = Question.query.filter(
+                        Question.question.ilike(f"%{search}%")).all()
+                if selection is None:
                     abort(404)
                 questions_found = paginate_questions(request, selection)
 
@@ -169,20 +171,24 @@ def create_app(test_config=None):
                         "success": True,
                         "questions": questions_found,
                         "total_questions": len(selection),
-                        # "current_category": {category.id: category.type for category in categories}
+                        #"current_category": {category.id: category.type for category in categories}
 
                     }
                 )
+            except Exception:
+                abort(404)
 
-            else:
+
+        elif new_question:
+            try:
                 question = Question(question=new_question, answer=new_answer,
                                     category=new_category, difficulty=new_difficulty)
                 question.insert()
 
                 selection = Question.query.order_by(Question.id).all()
-                current_questions = paginate_questions(request, selection)
+                # current_questions = paginate_questions(request, selection)
 
-                _, formatted_category = get_categories()
+                # _, formatted_category = get_categories()
 
                 return jsonify(
                     {
@@ -194,8 +200,10 @@ def create_app(test_config=None):
 
                     }
                 )
-        except Exception:
-            abort(422)
+            except Exception:
+                abort(404)
+        return get_questions()
+
 
     """
     @TODO:
