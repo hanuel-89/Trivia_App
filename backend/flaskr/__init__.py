@@ -13,15 +13,13 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+
 def paginate_questions(request, selection):
     page = request.args.get('page', 1, type=int)
     start = (page - 1) * QUESTIONS_PER_PAGE
     stop = start + QUESTIONS_PER_PAGE
-
     questions = [question.format() for question in selection]
-    current_questions = questions[start:stop]
-
-    return current_questions
+    return questions[start:stop]
 
 
 def create_app(test_config=None):
@@ -39,8 +37,10 @@ def create_app(test_config=None):
     """
     @app.after_request
     def after_request(response):
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        response.headers.add('Access-Control-Allow-Headers', 'GET, POST, PATCH, DELETE, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers',
+                             'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Headers',
+                             'GET, POST, PATCH, DELETE, OPTIONS')
         return response
     """
     @TODO:
@@ -52,19 +52,18 @@ def create_app(test_config=None):
         try:
             categories = Category.query.order_by(Category.id).all()
 
-
             if len(categories) == 0:
                 abort(404)
 
-            #print(categories.formate())
+            # print(categories.formate())
 
-            tmp_category_format = [category.format_id_type() for category in categories]
+            tmp_category_format = [category.format_id_type()
+                                   for category in categories]
 
             formatted_category = {}
             for key_pair in tmp_category_format:
                 for key, value in key_pair.items():
                     formatted_category[key] = value
-
 
             return jsonify(
                 {
@@ -75,7 +74,6 @@ def create_app(test_config=None):
             ), formatted_category
         except Exception:
             abort(422)
-
 
     """
     @TODO:
@@ -99,7 +97,6 @@ def create_app(test_config=None):
             abort(404)
         _, formatted_category = get_categories()
 
-
         return jsonify(
             {
                 "success": True,
@@ -109,7 +106,6 @@ def create_app(test_config=None):
                 "current_category": "History"
             }
         )
-
 
     """
     @TODO:
@@ -126,15 +122,19 @@ def create_app(test_config=None):
                 abort(404)
 
             question.delete()
+            selection = Question.query.order_by(Question.id).all()
+            current_questionss = paginate_questions(request, selection)
+
             return jsonify(
                 {
-                    "success": True
+                    "success": True,
+                    "deleted": id,
+                    "questions": current_questionss,
+                    "total_questions": len(Question.query.all()),
                 }
             )
         except Exception:
             abort(422)
-
-
 
     """
     @TODO:
@@ -159,13 +159,15 @@ def create_app(test_config=None):
 
         try:
             if search:
-                selection = Question.query.filter(Question.question.ilike(f"%{search}%")).all()
+                selection = Question.query.filter(
+                    Question.question.ilike(f"%{search}%")).all()
+                if len(selection) == 0:
+                    abort(404)
                 questions_found = paginate_questions(request, selection)
-                print(search)
-                #_, formatted_category = get_categories()
 
-                return jsonify (
+                return jsonify(
                     {
+                        "success": True,
                         "questions": questions_found,
                         "total_questions": len(selection),
                         "current_category": {category.id: category.type for category in categories}
@@ -174,7 +176,8 @@ def create_app(test_config=None):
                 )
 
             else:
-                question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+                question = Question(question=new_question, answer=new_answer,
+                                    category=new_category, difficulty=new_difficulty)
                 question.insert()
 
                 selection = Question.query.order_by(Question.id).all()
@@ -198,42 +201,6 @@ def create_app(test_config=None):
 
     """
     @TODO:
-    Create a POST endpoint to get questions based on a search term.
-    It should return any questions for whom the search term
-    is a substring of the question.
-
-    TEST: Search by any phrase. The questions list will update to include
-    only question that include that string within their question.
-    Try using the word "title" to start.
-    """
-    # @app.route('/questions', methods=['POST'])
-    # def search():
-    #     body = request.get_json()
-    #     try:
-    #         searchTerm = body.get('searchTerm')
-    #         search = request.args.get('search', searchTerm)
-    #         print(search)
-    #         selection = Question.query.filter(Question.question.ilike(f"%{searchTerm}%")).all()
-    #         if selection is None:
-    #             abort(404)
-    #         questions_found = paginate_questions(request, selection)
-    #         print(searchTerm)
-
-    #         _, formatted_category = get_categories()
-
-    #         return jsonify (
-    #             {
-    #                 "questions": questions_found,
-    #                 "total_questions": len(selection),
-    #                 "current_category": {category.id: category.type for category in formatted_category}
-
-    #             }
-    #         )
-    #     except Exception:
-    #         abort(422)
-
-    """
-    @TODO:
     Create a GET endpoint to get questions based on category.
 
     TEST: In the "List" tab / main screen, clicking on one of the
@@ -244,21 +211,21 @@ def create_app(test_config=None):
     def get_questions_by_category(id):
         try:
             selection = Question.query.filter(Question.category == id).all()
-            if selection is None:
+            if len(selection) == 0:
                 abort(404)
             current_questions = paginate_questions(request, selection)
 
             _, formatted_category = get_categories()
             return jsonify(
                 {
+                    "success": True,
                     "questions": current_questions,
                     "total_questions": len(selection),
-                    "current_category": formatted_category[id]
+                    "current_category": id
                 }
             )
-        except:
+        except Exception:
             abort(422)
-
 
     """
     @TODO:
@@ -281,21 +248,23 @@ def create_app(test_config=None):
         quiz_category_id = quiz_category['id']
         try:
             if quiz_category_id == 0:
-                selection = Question.query.filter(Question.id.notin_(previous_questions)).all()
+                selection = Question.query.filter(
+                    Question.id.notin_(previous_questions)).all()
             else:
                 category = Category.query.get(quiz_category_id)
                 if category is not None:
-                    selection = Question.query.filter(Question.id.notin_(previous_questions)).filter(Question.category == quiz_category_id).all()
+                    selection = Question.query.filter(Question.id.notin_(previous_questions)).filter(
+                        Question.category == quiz_category_id).all()
             current_question = None
             if len(selection) > 0:
                 current_question = random.choice(selection).format()
             return jsonify(
-            {
-                "success": True,
-                "question": current_question,
-                "totalQuesitons": len(Question.query.all())
-            }
-        )
+                {
+                    "success": True,
+                    "question": current_question,
+                    "totalQuesitons": len(Question.query.all())
+                }
+            )
 
         except Exception:
             abort(404)
@@ -308,14 +277,16 @@ def create_app(test_config=None):
     @app.errorhandler(404)
     def not_found(error):
         return (
-            jsonify({"success": False, "error": 404, "message": "resource not found"}),
+            jsonify({"success": False, "error": 404,
+                    "message": "resource not found"}),
             404,
         )
 
     @app.errorhandler(422)
     def unprocessable(error):
         return (
-            jsonify({"success": False, "error": 422, "message": "unprocessable"}),
+            jsonify({"success": False, "error": 422,
+                    "message": "unprocessable"}),
             422,
         )
 
@@ -326,9 +297,9 @@ def create_app(test_config=None):
     @app.errorhandler(405)
     def not_found(error):
         return (
-            jsonify({"success": False, "error": 405, "message": "method not allowed"}),
+            jsonify({"success": False, "error": 405,
+                    "message": "method not allowed"}),
             405,
         )
 
     return app
-
