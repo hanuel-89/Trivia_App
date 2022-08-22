@@ -122,14 +122,13 @@ def create_app(test_config=None):
                 abort(404)
 
             question.delete()
-            selection = Question.query.order_by(Question.id).all()
-            current_questionss = paginate_questions(request, selection)
+            #selection = Question.query.order_by(Question.id).all()
+            #current_questionss = paginate_questions(request, selection)
 
             return jsonify(
                 {
                     "success": True,
-                    "deleted": id,
-                    "questions": current_questionss,
+                    "deleted": question.id,
                     "total_questions": len(Question.query.all()),
                 }
             )
@@ -170,7 +169,7 @@ def create_app(test_config=None):
                         "success": True,
                         "questions": questions_found,
                         "total_questions": len(selection),
-                        "current_category": {category.id: category.type for category in categories}
+                        # "current_category": {category.id: category.type for category in categories}
 
                     }
                 )
@@ -188,11 +187,10 @@ def create_app(test_config=None):
                 return jsonify(
                     {
                         "success": True,
-                        "questions": current_questions,
+                        #"questions": current_questions,
                         "total_questions": len(selection),
-                        "categories": formatted_category,
-                        "current_category": {category.id: category.type for category in categories},
-                        "posted_question_Id": question.id
+                        "posted_question_Id": question.id,
+                        "posted": Question.query.filter(Question.id==question.id).one().format()
 
                     }
                 )
