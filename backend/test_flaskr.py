@@ -76,7 +76,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
         self.assertTrue(data["total_questions"])
-        self.assertTrue(len(data["questions"]))
+        self.assertTrue(data["posted"])
 
     # test posting questions to the wrong endpoint
     def test_405_if_question_creation_not_allowed(self):
@@ -141,14 +141,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], True)
         self.assertNotEqual(len(data['questions']), 1)
         self.assertTrue(data["questions"])
-
-    # Test 422 for search term not found
-    def test_422_search_not_found(self):
-        res = self.client().post('/questions', json=self.no_search)
-        data = json.loads(res.data)
-
-        self.assertEqual(res.status_code, 422)
-        self.assertEqual(data["success"], False)
 
     # Test fetching the next questions based on present category
     def test_next_question(self):
