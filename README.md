@@ -250,8 +250,8 @@ The API will return three error types when requests fail:
 ### Deployment
 N/A
 ### Authors
-- Sarah Garcia (Udacity)
 - Emmanuel Folorunsho
+- Sarah Maris (Udacity)
 ### Acknowledgement
 The awesome team at Udacity, especially the tutor for this module - Coach Caryn.
 
