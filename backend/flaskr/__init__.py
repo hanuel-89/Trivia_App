@@ -28,7 +28,8 @@ def create_app(test_config=None):
     setup_db(app)
 
     """
-    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after
+    completing the TODOs
     """
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
@@ -85,7 +86,8 @@ def create_app(test_config=None):
 
     TEST: At this point, when you start the application
     you should see questions and categories generated,
-    ten questions per page and pagination at the bottom of the screen for three pages.
+    ten questions per page and pagination at the bottom of the screen
+    for three pages.
     Clicking on the page numbers should update the questions.
     """
     @app.route('/questions')
@@ -111,7 +113,8 @@ def create_app(test_config=None):
     @TODO:
     Create an endpoint to DELETE question using a question ID.
 
-    TEST: When you click the trash icon next to a question, the question will be removed.
+    TEST: When you click the trash icon next to a question, the question
+    will be removed.
     This removal will persist in the database and when you refresh the page.
     """
     @app.route('/questions/<int:id>', methods=['DELETE'])
@@ -122,8 +125,8 @@ def create_app(test_config=None):
                 abort(404)
 
             question.delete()
-            #selection = Question.query.order_by(Question.id).all()
-            #current_questionss = paginate_questions(request, selection)
+            # selection = Question.query.order_by(Question.id).all()
+            # current_questionss = paginate_questions(request, selection)
 
             return jsonify(
                 {
@@ -142,7 +145,8 @@ def create_app(test_config=None):
     category, and difficulty score.
 
     TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
+    the form will clear and the question will appear at the end of
+    the last page
     of the questions list in the "List" tab.
     """
     @app.route('/questions', methods=['POST'])
@@ -171,13 +175,10 @@ def create_app(test_config=None):
                         "success": True,
                         "questions": questions_found,
                         "total_questions": len(selection),
-                        #"current_category": {category.id: category.type for category in categories}
-
                     }
                 )
             except Exception:
                 abort(404)
-
 
         elif new_question:
             try:
@@ -186,24 +187,20 @@ def create_app(test_config=None):
                 question.insert()
 
                 selection = Question.query.order_by(Question.id).all()
-                # current_questions = paginate_questions(request, selection)
-
-                # _, formatted_category = get_categories()
 
                 return jsonify(
                     {
                         "success": True,
-                        #"questions": current_questions,
+                        # "questions": current_questions,
                         "total_questions": len(selection),
                         "posted_question_Id": question.id,
-                        "posted": Question.query.filter(Question.id==question.id).one().format()
+                        "posted": Question.query.filter(Question.id == question.id).one().format()
 
                     }
                 )
             except Exception:
                 abort(404)
         return get_questions()
-
 
     """
     @TODO:
@@ -221,7 +218,6 @@ def create_app(test_config=None):
                 abort(404)
             current_questions = paginate_questions(request, selection)
 
-            _, formatted_category = get_categories()
             return jsonify(
                 {
                     "success": True,
@@ -271,7 +267,6 @@ def create_app(test_config=None):
                     "totalQuesitons": len(Question.query.all())
                 }
             )
-
         except Exception:
             abort(404)
 
@@ -301,11 +296,19 @@ def create_app(test_config=None):
         return jsonify({"success": False, "error": 400, "message": "bad request"}), 400
 
     @app.errorhandler(405)
-    def not_found(error):
+    def not_allowed(error):
         return (
             jsonify({"success": False, "error": 405,
                     "message": "method not allowed"}),
             405,
+        )
+
+    @app.errorhandler(500)
+    def server_error(error):
+        return (
+            jsonify({"success": False, "error": 500,
+                    "message": "internal server error"}),
+            500,
         )
 
     return app

@@ -49,6 +49,25 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["total_categories"])
         self.assertTrue(len(data["categories"]))
 
+    # Test 404 error when getting a particular category from categories
+    def test_404_get_category_from_categories(self):
+        res = self.client().get("categories/1")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "resource not found")
+
+    # Test 404 error when getting categories from questions
+    def test_404_get_category_from_question(self):
+        res = self.client().get("/questions/5/categories")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "resource not found")
+
+
     # Test the get_questions endpoint
     def test_get_paginated_questions(self):
         res = self.client().get("/questions")
@@ -58,6 +77,15 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], True)
         self.assertTrue(data["total_questions"])
         self.assertTrue(len(data["questions"]))
+
+    # Test 405 error when using an invalid endpoint '/questions/5'
+    def test_405_get_question(self):
+        res = self.client().get("/questions/5")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "method not allowed")
 
     # Test 404 error when the page requested is not available
     def test_404_sent_requesting_beyond_valid_page(self):
@@ -89,16 +117,15 @@ class TriviaTestCase(unittest.TestCase):
 
     # Test the delete endpoint
     def test_delete_question(self):
-        res = self.client().delete("/questions/10")
+        res = self.client().delete("/questions/25")
         data = json.loads(res.data)
 
-        question = Question.query.filter(Question.id == 10).one_or_none()
+        question = Question.query.filter(Question.id == 25).one_or_none()
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
-        self.assertEqual(data["deleted"], 10)
+        self.assertEqual(data["deleted"], 25)
         self.assertTrue(data["total_questions"])
-        self.assertTrue(len(data["questions"]))
         self.assertEqual(question, None)
 
     # Test 422 for question ids that don't exist
@@ -123,7 +150,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(len(data["questions"]), len(questions))
         self.assertEqual(data["current_category"], 1)
 
-    # Test 422 error for categories that don't exist
+    # Test 422 error for question that don't exist
     def test_422_if_category_does_not_exist(self):
         res = self.client().get("/categories/100/questions")
         data = json.loads(res.data)
@@ -142,6 +169,15 @@ class TriviaTestCase(unittest.TestCase):
         self.assertNotEqual(len(data['questions']), 1)
         self.assertTrue(data["questions"])
 
+   # Test the search function of the '/questions' endpoint
+    def test_500_search_questions(self):
+        res = self.client().post('/questions', json=None)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 500)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "internal server error")
+
     # Test fetching the next questions based on present category
     def test_next_question(self):
         res = self.client().post('/quizzes', json=self.quizzes)
@@ -150,6 +186,24 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data["question"])
         self.assertNotIn(data["question"]["id"], self.quizzes['previous_questions'])
+
+    # Test 404 error for '/quizzes/1 endpoint
+    def test_404_quizzes(self):
+        res = self.client().post('/quizzes/1', json=self.quizzes)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "resource not found")
+
+    # Test 500 error for '/quizzes endpoint
+    def test_500_quizzes(self):
+        res = self.client().post('/quizzes', json=self.new_search)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 500)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "internal server error")
 
 
 
