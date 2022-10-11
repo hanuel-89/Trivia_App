@@ -242,11 +242,9 @@ def create_app(test_config=None):
     """
     @app.route('/quizzes', methods=['GET', 'POST'])
     def next_question():
-        body = request.get_json()
+        body = request.get_json() # Get the json body
         previous_questions = body.get('previous_questions', None)
         quiz_category = body.get('quiz_category', None)
-        print(previous_questions)
-        print(quiz_category)
         quiz_category_id = quiz_category['id']
         try:
             if quiz_category_id == 0:
